@@ -2,3 +2,108 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from scipy.integrate import solve_ivp
+
+# Parâmetros fixos (resistências, complacência e indutâncias)
+R_cp, R_cs, R_ae, R_ve, R_ad, R_vd = 0.1, 1, 0.02, 0.02, 0.01, 0.01
+C_cp, C_cs, C_ae, C_ad = 20, 60, 2.5, 3
+L_cp, L_cs = 0.0001, 0.0002
+
+# Parâmetros da simulação
+tf = 20                    # [s]
+steps = 500000
+t = np.linspace(0, tf, steps)
+tl = 5                    # tempo de observação
+
+# Condições iniciais
+q_ad = 30                 
+q_vd = 70                 
+q_ae = 50                 
+q_ve = 90                
+q_cp = 260                                 
+i_cp = 0.0                 
+i_cs = 0.0
+q_0 = 5000
+
+x0 = np.array([q_ad, q_vd, q_ae, q_ve, q_cp, i_cp, i_cs])
+
+T, T_s, tau_s, tau_d = 0.75, 0.3, 0.15, 0.45
+
+# Função das complacências variáveis
+def compl_var(tc, C_VD, C_VS):
+    time = tc % T
+    if 0 <= time < T_s:
+        f1 = C_VD*((C_VS/C_VD)**((1-np.exp(-time/tau_s))/(1-np.exp(-T_s/tau_s))))
+        return f1
+    else:
+        f2 = C_VS*((C_VD/C_VS)**((1-np.exp(-(time-T_s)/tau_d))/(1-np.exp(-(T-T_s)/tau_d))))
+        return f2
+
+# Função das fontes de tensão
+def DDP(td, P_max, bpm=80):
+    T_L = 60/bpm
+    d = (0.17/(1+np.exp(-18.83*(T_L-0.38)))) - (1.33/10000)
+    RT = (0.65/(1+np.exp(-7.12*T_L))) - 0.33
+    T_S = (2/3)*RT
+    T_D = (1/3)*RT
+    TIME = td % T_L
+    if 0 <= TIME <= d or (d+T_S+T_D) < TIME <= T_L:
+        F1 = 0
+        return F1
+    elif d < TIME <= (d + T_S):
+        F2 = 0.5*P_max*(1-np.cos((np.pi*(TIME-d))/T_S))
+        return F2
+    else:
+        F3 = 0.5*P_max*(1-np.cos((np.pi*(TIME-(T_S+d)))/T_D))
+        return F3
+
+def Lin(t, x):
+    C_vd = compl_var(t, 15, 1)
+    C_ve = compl_var(t, 10, 0.4)
+    P_ad = DDP(t, 2.5, 80)
+    P_vd = DDP(t, 22, 80)
+    P_ae = DDP(t, 8, 80)
+    P_ve = DDP(t, 120, 80)
+    Sol = [(-1/(C_ad*R_ad))*x[0] + (1/(C_vd*R_ad))*x[1] - x[6] - (P_ad/R_ad),
+          (1/(C_ad*R_ad))*x[0] + (-1/(C_vd))*((1/R_ad)+(1/R_vd))*x[1] + (1/(C_cp*R_vd))*x[4] + (P_ad/R_ad) - (P_vd/R_vd),
+          (-1/(C_ae*R_ae))*x[2] + (1/(C_ve*R_ae))*x[3] - x[5] - (P_ae/R_ae),
+          (-1/(C_cs*R_ve))*x[0] + (-1/(C_cs*R_ve))*x[1] + ((1/(C_ae*R_ae))+(-1/(C_cs*R_ve)))*x[2] + ((-1/(C_ve*R_ve))+(-1/(C_ve*R_ae))+(-1/(C_cs*R_ve)))*x[3] + (-1/(C_cs*R_ve))*x[4] + (P_ae/R_ae) - (P_ve/R_ve) + (q_0/(C_cs*R_ve)),
+          (1/(C_vd*R_vd))*x[1] + (-1/(C_cp*R_vd))*x[4] + x[5] + (P_vd/R_vd),
+          (1/(C_ae*L_cp))*x[2] + (-1/(C_cp*L_cp))*x[4] - (R_cp/L_cp)*x[5],
+          (1/(L_cs))*((1/C_ad)+(1/C_cs))*x[0] + (1/(C_cs*L_cs))*x[1] + (1/(C_cs*L_cs))*x[2] + (1/(C_cs*L_cs))*x[3] + (1/(C_cs*L_cs))*x[4] - (R_cs/L_cs)*x[6] - (q_0/(C_cs*L_cs))]
+    return Sol
+
+s_N1 = solve_ivp(Lin, [0, tf], x0, method='RK45', dense_output=True)
+x_N1 = s_N1.sol(t)
+
+fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 8))
+
+axs[0,0].plot(t, x_N1[0], 'limegreen', lw=1.5)
+axs[0,0].set_xlabel(r'tempo [s]')
+axs[0,0].set_ylabel(r'Volume [ml]')
+axs[0,0].grid(color='darkgrey', lw=0.5)
+axs[0,0].set_title(r'Valores de carga', fontfamily = 'sans-serif', fontsize = 'large')
+
+axs[0,1].plot(t, x_N1[1], 'limegreen', lw=1.5)
+axs[0,1].set_xlabel(r'tempo [s]')
+axs[0,1].set_ylabel(r'Volume [ml]')
+axs[0,1].grid(color='darkgrey', lw=0.5)
+axs[0,1].set_title(r'Valores de carga', fontfamily = 'sans-serif', fontsize = 'large')
+
+axs[1,0].plot(t, x_N1[2], 'limegreen', lw=1.5)
+axs[1,0].set_xlabel(r'tempo [s]')
+axs[1,0].set_ylabel(r'Volume [ml]')
+axs[1,0].grid(color='darkgrey', lw=0.5)
+axs[1,0].set_title(r'Valores de carga', fontfamily = 'sans-serif', fontsize = 'large')
+
+axs[1,1].plot(t, x_N1[3], 'limegreen', lw=1.5)
+axs[1,1].set_xlabel(r'tempo [s]')
+axs[1,1].set_ylabel(r'Volume [ml]')
+axs[1,1].grid(color='darkgrey', lw=0.5)
+axs[1,1].set_title(r'Valores de carga', fontfamily = 'sans-serif', fontsize = 'large')
+
+
+# Adjust the layout and spacing
+fig.tight_layout()
+
+# Show the plot
+plt.show()
