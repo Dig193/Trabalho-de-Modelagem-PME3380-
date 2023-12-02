@@ -76,8 +76,8 @@ def res_int(t, NOM, SAT=100, bpm = 80):
     return Ri
 
 def Lin(t, x):
-    C_vd = compl_var(t, 15, 1)
-    C_ve = compl_var(t, 10, 0.4)
+    C_vd = compl(t, 15, 1)
+    C_ve = compl(t, 10, 0.4)
     P_ad = DDP_atr(t, 2.5, 80)
     P_vd = DDP_ven(t, 22, 80)
     P_ae = DDP_atr(t, 8, 80)
