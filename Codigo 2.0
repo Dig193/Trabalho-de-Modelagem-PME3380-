@@ -27,18 +27,14 @@ q_0 = 5000
 x0 = np.array([q_ad, q_vd, q_ae, q_ve, q_cp, i_cp, i_cs])
 
 # Função das complacências variáveis
-def compl_var(tc, C_VD, C_VS, bpm = 80):
-    T = 60/bpm
-    time = tc % T
-    T_s = 0.4*T
-    tau_s = 0.2*T
-    tau_d= 0.6*T
-    if 0 <= time < T_s:
-        f1 = C_VD*((C_VS/C_VD)**((1-np.exp(-time/tau_s))/(1-np.exp(-T_s/tau_s))))
-        return f1
+def compl(TC, c_vd, c_vs, bpm = 80):
+    Tl = 60/bpm
+    zeit = TC % Tl
+    if 0<= zeit < 0.5*Tl:
+        c = 1/((1/c_vd)+((1/c_vs)-(1/c_vd))*np.sin(np.pi*zeit/(0.5*Tl)))
     else:
-        f2 = C_VS*((C_VD/C_VS)**((1-np.exp(-(time-T_s)/tau_d))/(1-np.exp(-(T-T_s)/tau_d))))
-        return f2
+        c = c_vd
+    return c
 
 def DDP_atr(ts, P_MAX, bpm=80):
     TR = 60/bpm
