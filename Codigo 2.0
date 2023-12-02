@@ -1,0 +1,140 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+from scipy.integrate import solve_ivp
+
+# Parâmetros fixos (resistências, complacência e indutâncias)
+R_cp, R_cs = 0.1, 1
+C_cp, C_cs, C_ae, C_ad = 20, 60, 2.5, 3
+L_cp, L_cs = 0.0001, 0.0001
+
+# Parâmetros da simulação
+tf = 20                    # [s]
+steps = 500000
+t = np.linspace(0, tf, steps)
+tl = 5                    # tempo de observação
+
+# Condições iniciais
+q_ad = 30                 
+q_vd = 70                 
+q_ae = 50                 
+q_ve = 90                
+q_cp = 260                                 
+i_cp = 0.0                 
+i_cs = 0.0
+q_0 = 5000
+
+x0 = np.array([q_ad, q_vd, q_ae, q_ve, q_cp, i_cp, i_cs])
+
+# Função das complacências variáveis
+def compl_var(tc, C_VD, C_VS, bpm = 80):
+    T = 60/bpm
+    time = tc % T
+    T_s = 0.4*T
+    tau_s = 0.2*T
+    tau_d= 0.6*T
+    if 0 <= time < T_s:
+        f1 = C_VD*((C_VS/C_VD)**((1-np.exp(-time/tau_s))/(1-np.exp(-T_s/tau_s))))
+        return f1
+    else:
+        f2 = C_VS*((C_VD/C_VS)**((1-np.exp(-(time-T_s)/tau_d))/(1-np.exp(-(T-T_s)/tau_d))))
+        return f2
+
+def DDP_atr(ts, P_MAX, bpm=80):
+    TR = 60/bpm
+    CONT = ts % TR
+    if (0.88*TR) <= CONT <= TR:
+        PRES = P_MAX*np.sin(np.pi*CONT/(0.12*TR) - 0.88*np.pi/(0.12))
+    else:
+        PRES = 0
+    return PRES
+
+
+def DDP_ven(td, P_max, bpm=80):
+    Tr = 60/bpm
+    cont = td % Tr
+    if 0 <= cont <= 0.4*Tr:
+        Pres = P_max*np.sin((np.pi*cont/(0.4*Tr)))
+    else:
+        Pres = 0
+    return Pres
+
+#Função das resistências entre ventrículos e circulações:
+def res_ext(t, nom, sat=100, bpm = 80):
+    P = 60/bpm
+    tempo = t % P
+    if 0.04*P <= tempo <= (P/3):
+        Re = nom
+    else:
+        Re = sat
+    return Re
+
+#Função das resistências entre átrios e ventrículos:
+def res_int(t, NOM, SAT=100, bpm = 80):
+    Per = 60/bpm
+    TEMPO = t % Per
+    if 0 <= TEMPO <= 0.4*Per:
+        Ri = SAT
+    else:
+        Ri = NOM
+    return Ri
+
+def Lin(t, x):
+    C_vd = compl_var(t, 15, 1)
+    C_ve = compl_var(t, 10, 0.4)
+    P_ad = DDP_atr(t, 2.5, 80)
+    P_vd = DDP_ven(t, 22, 80)
+    P_ae = DDP_atr(t, 8, 80)
+    P_ve = DDP_ven(t, 120, 80)
+    R_ad = res_int(t, 0.01, 100, 80)
+    R_vd = res_ext(t, 0.01, 100, 80)
+    R_ae = res_int(t, 0.02, 100, 80)
+    R_ve = res_ext(t, 0.02, 100, 80)
+    Sol = [(-1/(C_ad*R_ad))*x[0] + (1/(C_vd*R_ad))*x[1] - x[6] - (P_ad/R_ad),
+          (1/(C_ad*R_ad))*x[0] + (-1/(C_vd))*((1/R_ad)+(1/R_vd))*x[1] + (1/(C_cp*R_vd))*x[4] + (P_ad/R_ad) - (P_vd/R_vd),
+          (-1/(C_ae*R_ae))*x[2] + (1/(C_ve*R_ae))*x[3] - x[5] - (P_ae/R_ae),
+          (-1/(C_cs*R_ve))*x[0] + (-1/(C_cs*R_ve))*x[1] + ((1/(C_ae*R_ae))+(-1/(C_cs*R_ve)))*x[2] + ((-1/(C_ve*R_ve))+(-1/(C_ve*R_ae))+(-1/(C_cs*R_ve)))*x[3] + (-1/(C_cs*R_ve))*x[4] + (P_ae/R_ae) - (P_ve/R_ve) + (q_0/(C_cs*R_ve)),
+          (1/(C_vd*R_vd))*x[1] + (-1/(C_cp*R_vd))*x[4] + x[5] + (P_vd/R_vd),
+          (1/(C_ae*L_cp))*x[2] + (-1/(C_cp*L_cp))*x[4] - (R_cp/L_cp)*x[5],
+          (1/(L_cs))*((1/C_ad)+(1/C_cs))*x[0] + (1/(C_cs*L_cs))*x[1] + (1/(C_cs*L_cs))*x[2] + (1/(C_cs*L_cs))*x[3] + (1/(C_cs*L_cs))*x[4] - (R_cs/L_cs)*x[6] - (q_0/(C_cs*L_cs))]
+    return Sol
+
+s_N1 = solve_ivp(Lin, [0, tf], x0, method='RK45', dense_output=True)
+x_N1 = s_N1.sol(t)
+
+fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 8))
+
+axs[0,0].plot(t, x_N1[0], 'limegreen', lw=1.5)
+axs[0,0].set_xlabel(r'tempo [s]')
+axs[0,0].set_ylabel(r'Volume [ml]')
+axs[0,0].set_xlim(12,13)
+axs[0,0].grid(color='darkgrey', lw=0.5)
+axs[0,0].set_title(r'Valores de carga', fontfamily = 'sans-serif', fontsize = 'large')
+
+axs[0,1].plot(t, x_N1[1], 'limegreen', lw=1.5)
+axs[0,1].set_xlabel(r'tempo [s]')
+axs[0,1].set_ylabel(r'Volume [ml]')
+axs[0,1].set_xlim(12,13)
+axs[0,1].grid(color='darkgrey', lw=0.5)
+axs[0,1].set_title(r'Valores de carga', fontfamily = 'sans-serif', fontsize = 'large')
+
+axs[1,0].plot(t, x_N1[2], 'limegreen', lw=1.5)
+axs[1,0].set_xlabel(r'tempo [s]')
+axs[1,0].set_ylabel(r'Volume [ml]')
+axs[1,0].set_xlim(12,13)
+axs[1,0].grid(color='darkgrey', lw=0.5)
+axs[1,0].set_title(r'Valores de carga', fontfamily = 'sans-serif', fontsize = 'large')
+
+axs[1,1].plot(t, x_N1[3], 'limegreen', lw=1.5)
+axs[1,1].set_xlabel(r'tempo [s]')
+axs[1,1].set_ylabel(r'Volume [ml]')
+axs[1,1].set_xlim(12,13)
+axs[1,1].grid(color='darkgrey', lw=0.5)
+axs[1,1].set_title(r'Valores de carga', fontfamily = 'sans-serif', fontsize = 'large')
+
+
+# Adjust the layout and spacing
+fig.tight_layout()
+
+# Show the plot
+plt.show()
