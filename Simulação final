@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
 # Parâmetros fixos (resistências, complacência e indutâncias)
-R_cp, R_cs = 0.1, 1
-C_cp, C_cs, C_ae, C_ad = 20, 50, 2.5, 3
+R_cp, R_cs = 0.1, 0.2
+C_cp, C_cs, C_ae, C_ad = 20, 120, 2, 2
 L_cp, L_cs = 0.0001, 0.0001
 
 # Parâmetros da simulação
@@ -19,7 +19,7 @@ q_ad = 30
 q_vd = 70                 
 q_ae = 50                 
 q_ve = 90                
-q_cp = 400                                 
+q_cp = 500                                 
 i_cp = 0.0                 
 i_cs = 0.0
 q_0 = 5000
@@ -30,8 +30,8 @@ x0 = np.array([q_ad, q_vd, q_ae, q_ve, q_cp, i_cp, i_cs])
 def compl(TC, c_vd, c_vs, bpm = 80):
     Tl = 60/bpm
     zeit = TC % Tl
-    tc = 0.3*Tl
-    tr = 0.25*Tl
+    tc = 0.2*Tl
+    tr = 0.23*Tl
     if 0 <= zeit < tc:
         f = 0.5*(1-np.cos(np.pi*zeit/tc))
     elif tc <= zeit < tc + tr:
@@ -64,7 +64,7 @@ def P_v(td,P_0, P_max, bpm=80):
 def P_cp(td,P_0, P_max, bpm=80):
     Tr = 60/bpm
     cont = td % Tr
-    A = 10.95
+    A = 10.94
     B = P_0 + 0.5*(P_max-P_0)*(1-np.cos((2*np.pi*(0.85*Tr/3-0.08*Tr)/(Tr/3))))
     D = (np.pi*(P_max-P_0)/0.08*Tr)*np.sin((2*np.pi*(0.85*Tr/3-0.08*Tr)/(Tr/3)))
     C =D/(A-B)
@@ -101,7 +101,7 @@ def res_ext(t, nom, sat=100, bpm = 80):
     tempo = t % Tr
     r = 0.56
     u = 1.2
-    if r*0.2*Tr <= tempo <= u*0.2*Tr:
+    if r*0.2*Tr <= tempo <= 0.33*Tr:
         Re = nom
     else:
         Re = sat
@@ -111,23 +111,23 @@ def res_ext(t, nom, sat=100, bpm = 80):
 def res_int(t, NOM, SAT=100, bpm = 80):
     Per = 60/bpm
     TEMPO = t % Per
-    if 0 <= TEMPO <= 0.48*Per:
+    if 0 <= TEMPO <= 0.55*Per:
         Ri = SAT
     else:
         Ri = NOM
     return Ri
 
 def Lin(t, x):
-    C_vd = compl(t, 15, 1)
-    C_ve = compl(t, 12, 0.5)
+    C_vd = compl(t, 15, 0.7)
+    C_ve = compl(t, 10, 0.3)
     P_ad = P_a(t, 2.5, 5, 80) - P_v(t, 5, 22, 80)
-    P_vd = P_v(t, 5, 22, 80) - P_cp(t, 11, 17, 80)
-    P_ae = P_a(t, 5, 8, 80) - P_v(t, 10, 100, 80)
-    P_ve = P_v(t, 10, 100, 80) - P_cs(t, 60, 95, 80)
+    P_vd = P_v(t, 5, 22, 80) - P_cp(t, 11, 19, 80)
+    P_ae = P_a(t, 5, 8, 80) - P_v(t, 10, 120, 80)
+    P_ve = P_v(t, 10, 120, 80) - P_cs(t, 80, 115, 80)
     R_ad = res_int(t, 0.01, 100, 80)
-    R_vd = res_ext(t, 0.01, 100, 80)
+    R_vd = res_ext(t, 0.11, 100, 80)
     R_ae = res_int(t, 0.02, 100, 80)
-    R_ve = res_ext(t, 0.02, 100, 80)
+    R_ve = res_ext(t, 0.42, 100, 80)
     Sol = [(-1/(C_ad*R_ad))*x[0] + (1/(C_vd*R_ad))*x[1] - x[6] - (P_ad/R_ad),
           (1/(C_ad*R_ad))*x[0] + (-1/(C_vd))*((1/R_ad)+(1/R_vd))*x[1] + (1/(C_cp*R_vd))*x[4] + (P_ad/R_ad) - (P_vd/R_vd),
           (-1/(C_ae*R_ae))*x[2] + (1/(C_ve*R_ae))*x[3] - x[5] - (P_ae/R_ae),
@@ -188,11 +188,11 @@ axs[2,1].grid(color='darkgrey', lw=0.5)
 #axs[2,1].set_title(r'Valores de carga', fontfamily = 'sans-serif', fontsize = 'large')
 
 P_v_d_y = [P_v(T, 5, 22, 80) for T in t]
-P_v_e_y = [P_v(T, 10, 100, 80) for T in t]
+P_v_e_y = [P_v(T, 10, 120, 80) for T in t]
 P_a_d_y = [P_a(T, 5, 8, 80) for T in t]
 P_a_e_y = [P_a(T, 10, 20, 80) for T in t]
-P_cp_y = [P_cp(T, 11, 17, 80) for T in t]
-P_cs_y = [P_cs(T, 60, 95, 80) for T in t]
+P_cp_y = [P_cp(T, 11, 19, 80) for T in t]
+P_cs_y = [P_cs(T, 80, 115, 80) for T in t]
 R_ad_y = [res_int(T, 0.01, 1000, 80) for T in t]  
 R_ae_y = [res_int(T, 0.02, 1000, 80) for T in t]  
 R_vd_y = [res_ext(T, 0.01, 1000, 80) for T in t]  
