@@ -41,6 +41,15 @@ def compl(TC, c_vd, c_vs, bpm = 80):
     c = 1/(1/c_vd+f*(1/c_vs-1/c_vd))
     return c
 
+def P_a(ts, P_0, P_MAX, bpm=80):
+    TR = 60/bpm
+    CONT = ts % TR
+    if (0.88*TR) <= CONT <= TR:
+        PRES = P_0 + P_MAX*np.sin(np.pi*CONT/(0.12*TR) - 0.88*np.pi/(0.12))
+    else:
+        PRES = P_0
+    return PRES
+
 def P_v(td,P_0, P_max, bpm=80):
     Tr = 60/bpm
     cont = td % Tr
@@ -111,9 +120,9 @@ def res_int(t, NOM, SAT=100, bpm = 80):
 def Lin(t, x):
     C_vd = compl(t, 15, 1)
     C_ve = compl(t, 12, 0.5)
-    P_ad = 5 - P_v(t, 5, 22, 80)
+    P_ad = P_a(t, 2.5, 5, 80) - P_v(t, 5, 22, 80)
     P_vd = P_v(t, 5, 22, 80) - P_cp(t, 11, 17, 80)
-    P_ae = 10 - P_v(t, 10, 100, 80)
+    P_ae = P_a(t, 5, 8, 80) - P_v(t, 10, 100, 80)
     P_ve = P_v(t, 10, 100, 80) - P_cs(t, 60, 95, 80)
     R_ad = res_int(t, 0.01, 100, 80)
     R_vd = res_ext(t, 0.01, 100, 80)
@@ -180,8 +189,8 @@ axs[2,1].grid(color='darkgrey', lw=0.5)
 
 P_v_d_y = [P_v(T, 5, 22, 80) for T in t]
 P_v_e_y = [P_v(T, 10, 100, 80) for T in t]
-P_a_d_y = [6 for T in t]
-P_a_e_y = [11 for T in t]
+P_a_d_y = [P_a(T, 5, 8, 80) for T in t]
+P_a_e_y = [P_a(T, 10, 20, 80) for T in t]
 P_cp_y = [P_cp(T, 11, 17, 80) for T in t]
 P_cs_y = [P_cs(T, 60, 95, 80) for T in t]
 R_ad_y = [res_int(T, 0.01, 1000, 80) for T in t]  
