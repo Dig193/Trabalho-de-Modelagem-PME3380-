@@ -64,16 +64,17 @@ def P_v(td,P_0, P_max, bpm=80):
 def P_cp(td,P_0, P_max, bpm=80):
     Tr = 60/bpm
     cont = td % Tr
-    A = 10.94
-    B = P_0 + 0.5*(P_max-P_0)*(1-np.cos((2*np.pi*(0.85*Tr/3-0.08*Tr)/(Tr/3))))
-    D = (np.pi*(P_max-P_0)/0.08*Tr)*np.sin((2*np.pi*(0.85*Tr/3-0.08*Tr)/(Tr/3)))
-    C =D/(A-B)
+    A = 10.1
+    B = P_0 + 0.5*(P_max-P_0)*(1-np.cos((2*np.pi*(0.8*Tr*0.33-0.08*Tr)/(Tr*0.33))))
+    D = (np.pi*(P_max-P_0)/(0.33*Tr))*np.sin((2*np.pi*(0.8*0.33-0.4*0.2)/(0.33)))
+    C =D /(A-B)
+    print (B,C,D)
     if 0 <= cont <= 0.08*Tr:
         Pres = P_0
-    elif 0.08*Tr <= cont <= 0.85*Tr/3:
-        Pres = P_0 + 0.5*(P_max-P_0)*(1-np.cos((2*np.pi*(cont-0.08*Tr)/(Tr/3))))
+    elif 0.08*Tr <= cont <= 0.8*0.33*Tr:
+        Pres = P_0 + 0.5*(P_max-P_0)*(1-np.cos((2*np.pi*(cont-0.08*Tr)/(Tr*0.33))))
     else:
-        Pres = A + (B-A)*np.exp(-C*(cont-0.85*Tr/3))
+        Pres = A + (B-A)*np.exp(-C*(cont-0.8*0.33*Tr))
     return Pres
 
 def P_cs(td,P_0, P_max, bpm=80):
