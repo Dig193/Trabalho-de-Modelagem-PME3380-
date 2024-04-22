@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Spyder Editor
 This is a temporary script file.
@@ -59,17 +58,30 @@ def A_cond (Rad, Cvd, Rvd, Rae, Cve, Rve):
 	[1/(Cad*Lcs)+1/(Ccs*Lcs),1/(Ccs*Lcs),1/(Ccs*Lcs),1/(Ccs*Lcs),1/(Ccs*Lcs),0,-Rcs/Lcs]])
     return A
 
+# def B_cond (Rad, Cvd, Rvd, Rae, Cve, Rve):
+#     B=np.array([
+#     [-1/Rad,0,0,0,0],
+#     [1/Rad,-1/Rvd,0,0,0],
+#     [0,0,-1/Rae,0,0],
+#     [0,0,1/Rae,-1/Rve,-1/(Ccs*Rve)],
+#     [0,1/Rvd,0,0,0],
+#     [0,0,0,0,0],
+#     [0,0,0,0,1/(Ccs*Lcs)]
+#     ])
+#     return B
+
 def B_cond (Rad, Cvd, Rvd, Rae, Cve, Rve):
     B=np.array([
-    [-1/Rad,0,0,0,0],
-    [1/Rad,-1/Rvd,0,0,0],
-    [0,0,-1/Rae,0,0],
-    [0,0,1/Rae,-1/Rve,-1/(Ccs*Rve)],
-    [0,1/Rvd,0,0,0],
-    [0,0,0,0,0],
-    [0,0,0,0,1/(Ccs*Lcs)]
+    [-1/Rad,0,0,0],
+    [1/Rad,-1/Rvd,0,0],
+    [0,0,-1/Rae,0],
+    [0,0,1/Rae,-1/Rve],
+    [0,1/Rvd,0,0],
+    [0,0,0,0],
+    [0,0,0,0]
     ])
     return B
+
 
 C=np.array([
     [1,0,0,0,0,0,0],
@@ -80,12 +92,12 @@ C=np.array([
     [-1,-1,-1,-1,-1,0,0]])
 
 D=np.array([
-    [0,0,0,0,0],
-    [0,0,0,0,0],
-    [0,0,0,0,0],
-    [0,0,0,0,0],
-    [0,0,0,0,0],
-    [0,0,0,0,1]])
+    [0,0,0,0],
+    [0,0,0,0],
+    [0,0,0,0],
+    [0,0,0,0],
+    [0,0,0,0],
+    [0,0,0,0]])
 
 # Condição 1
 Rad, Cvd, Rvd, Rae, Cve, Rve = Condição(100, 0.7, 0.11, 100, 0.3, 0.42)
@@ -119,40 +131,45 @@ sys = clt.ss(A4,B4,C,D)
 G4 = clt.tf(sys)
 pp1 = clt.poles(sys)
 
-plt.figure(dpi=800)
+# plt.figure(dpi=800)
 
-#Volume de cada um dos átrios afetados pela diferença de pressão em cada uma de suas saídas
-mag,phase,omega = clt.bode_plot(G2[0,0],Hz=True,dB=True,color='lime',label ='Átrio direito')
-mag,phase,omega = clt.bode_plot(G2[2,2],Hz=True,dB=True,color='deepskyblue',label ='Átrio esquerdo')
+# #Volume de cada um dos átrios afetados pela diferença de pressão em cada uma de suas saídas
+# mag,phase,omega = clt.bode_plot(G2[0,0],Hz=True,dB=True,color='lime',label ='Átrio direito')
+# mag,phase,omega = clt.bode_plot(G2[2,2],Hz=True,dB=True,color='deepskyblue',label ='Átrio esquerdo')
 
-plt.legend()
-plt.show()
+# plt.legend()
+# plt.show()
 
-plt.figure(dpi=800)
+# plt.figure(dpi=800)
 
-#Volume de cada um dos ventrículos afetados pela diferença de pressão em cada uma de suas saídas
-mag,phase,omega = clt.bode_plot(G1[1,1],Hz=True,dB=True,color='green',label ='Ventrículo direito (s)')
-mag,phase,omega = clt.bode_plot(G1[3,3],Hz=True,dB=True,color='blue',label ='Ventrículo esquerdo (s)')
-mag,phase,omega = clt.bode_plot(G4[1,1],Hz=True,dB=True,color='greenyellow',label ='Ventrículo direito (d)')
-mag,phase,omega = clt.bode_plot(G4[3,3],Hz=True,dB=True,color='cyan',label ='Ventrículo esquerdo (d)')
+# #Volume de cada um dos ventrículos afetados pela diferença de pressão em cada uma de suas saídas
+# mag,phase,omega = clt.bode_plot(G1[1,1],Hz=True,dB=True,color='green',label ='Ventrículo direito (s)')
+# mag,phase,omega = clt.bode_plot(G1[3,3],Hz=True,dB=True,color='blue',label ='Ventrículo esquerdo (s)')
+# mag,phase,omega = clt.bode_plot(G4[1,1],Hz=True,dB=True,color='greenyellow',label ='Ventrículo direito (d)')
+# mag,phase,omega = clt.bode_plot(G4[3,3],Hz=True,dB=True,color='cyan',label ='Ventrículo esquerdo (d)')
 
-plt.legend()
-plt.show()
+# plt.legend()
+# plt.show()
 
-plt.figure(dpi=800)
+# plt.figure(dpi=800)
 
-#Volume de cada uma das ciruclações afetadas pela diferença de pressão em cada uma de suas entradas (imposta pelos ventrículos)
-mag,phase,omega = clt.bode_plot(G1[4,1],Hz=True,dB=True,color='lightcoral', label ='Circulação pulmonar')
-mag,phase,omega = clt.bode_plot(G1[5,3],Hz=True,dB=True,color='crimson',label ='Circulação sistêmica')
+# #Volume de cada uma das ciruclações afetadas pela diferença de pressão em cada uma de suas entradas (imposta pelos ventrículos)
+# mag,phase,omega = clt.bode_plot(G1[4,1],Hz=True,dB=True,color='lightcoral', label ='Circulação pulmonar')
+# mag,phase,omega = clt.bode_plot(G1[5,3],Hz=True,dB=True,color='crimson',label ='Circulação sistêmica')
 
-plt.legend()
-plt.show()
+# plt.legend()
+# plt.show()
 
-plt.figure(dpi=800)
+# plt.figure(dpi=800)
 
-#Volume de cada um dos ventrículos afetados pela diferença de pressão em cada uma de suas entradas (imposta pelos átrios)
-mag,phase,omega = clt.bode_plot(G2[1,0],Hz=True,dB=True,color='green',label ='Ventrículo direito')
-mag,phase,omega = clt.bode_plot(G2[3,2],Hz=True,dB=True,color='blue',label ='Ventrículo esquerdo')
+# #Volume de cada um dos ventrículos afetados pela diferença de pressão em cada uma de suas entradas (imposta pelos átrios)
+# mag,phase,omega = clt.bode_plot(G2[1,0],Hz=True,dB=True,color='green',label ='Ventrículo direito')
+# mag,phase,omega = clt.bode_plot(G2[3,2],Hz=True,dB=True,color='blue',label ='Ventrículo esquerdo')
 
-plt.legend()
-plt.show()
+# plt.legend()
+# plt.show()
+
+Q1 = clt.ctrb(A1,B1)
+Q2 = clt.ctrb(A2,B2)
+Q3 = clt.ctrb(A3,B3)
+Q4 = clt.ctrb(A4,B4)
