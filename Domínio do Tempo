@@ -290,6 +290,11 @@ P_a_e_y = [P_a(T, 10, 20, 80) for T in t]
 P_cp_y = [P_cp(T, 11, 19, 80) for T in t]
 P_cs_y = [P_cs(T, 80, 115, 80) for T in t]
 
+R_ad = [res_int(T, 0.01, 100, 80) for T in t]
+R_vd = [res_ext(T, 0.11, 100, 80) for T in t]
+R_ae = [res_int(T, 0.02, 100, 80) for T in t]
+R_ve = [res_ext(T, 0.42, 100, 80) for T in t]
+
 fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(12, 6), dpi=1000)
 
 axs[0].plot(t, P_v_d_y, 'green', lw=1.5)
@@ -311,29 +316,37 @@ axs[1].set_ylim(0,130)
 axs[1].legend(['Átrio esquerdo', 'Ventrículo esquerdo','Circulação sistêmica'], loc='upper center', shadow=True)
 axs[1].grid(color='darkgrey', lw=0.5)
 
-plt.plot(t, C_vd_y, 'green', lw=1.5, label ='Ventrículo direito')
-plt.plot(t, C_ve_y, 'blue', lw=1.5, label ='Ventrículo esquerdo')
-plt.xlabel(r'tempo [s]')
-plt.ylabel(r'Complacência [ml/mmHg]')
-plt.xlim(0,0.75)
-plt.grid(color='darkgrey', lw=0.5)
-plt.title(r'Complacência dos ventrículos em um ciclo cardíaco', fontfamily = 'sans-serif', fontsize = 'large')
+fig.tight_layout()
 
-plt.plot(t, R_ve_y, 'blue', lw=1.5, label ='Ventrículo esquerdo')
-plt.plot(t, R_ae_y, 'deepskyblue', lw=1.5, label ='Átrio esquerdo')
-plt.xlabel(r'tempo [s]')
-plt.ylabel(r'Resistência [mmHgs/mL]')
-plt.xlim(0,0.75)
-plt.grid(color='darkgrey', lw=0.5)
-plt.title(r'Resistência das válvulas do lado esquerdo do coração', fontfamily = 'sans-serif', fontsize = 'large')
+plt.show()
 
-plt.plot(t, R_vd_y, 'green', lw=1.5, label ='Ventrículo direito')
-plt.plot(t, R_ad_y, 'lime', lw=1.5, label ='Átrio direito')
-plt.xlabel(r'tempo [s]')
-plt.ylabel(r'Resistência [mmHgs/mL]')
-plt.xlim(0,0.75)
-plt.grid(color='darkgrey', lw=0.5)
-plt.title(r'Resistência das válvulas do lado direito do coração', fontfamily = 'sans-serif', fontsize = 'large')
+axs[0].plot(t, C_vd, 'green', lw=1.5, label ='Ventrículo direito')
+axs[0].plot(t, C_ve, 'blue', lw=1.5, label ='Ventrículo esquerdo')
+axs[0].xlabel(r'tempo [s]')
+axs[0].ylabel(r'Complacência [ml/mmHg]')
+axs[0].xlim(0,0.75)
+axs[0].grid(color='darkgrey', lw=0.5)
+axs[0]. title(r'Complacência dos ventrículos em um ciclo cardíaco', fontfamily = 'sans-serif', fontsize = 'large')
+
+fig.tight_layout()
+
+plt.show()
+
+axs[0].plot(t, R_ve, 'blue', lw=1.5, label ='Ventrículo esquerdo')
+axs[0].plot(t, R_ae, 'deepskyblue', lw=1.5, label ='Átrio esquerdo')
+axs[0].xlabel(r'tempo [s]')
+axs[0].ylabel(r'Resistência [mmHgs/mL]')
+axs[0].xlim(0,0.75)
+axs[0].grid(color='darkgrey', lw=0.5)
+axs[0].title(r'Resistência das válvulas do lado esquerdo do coração', fontfamily = 'sans-serif', fontsize = 'large')
+
+axs[1].plot(t, R_vd, 'green', lw=1.5, label ='Ventrículo direito')
+axs[1].plot(t, R_ad, 'lime', lw=1.5, label ='Átrio direito')
+axs[1].xlabel(r'tempo [s]')
+axs[1].ylabel(r'Resistência [mmHgs/mL]')
+axs[1].xlim(0,0.75)
+axs[1].grid(color='darkgrey', lw=0.5)
+axs[1].title(r'Resistência das válvulas do lado direito do coração', fontfamily = 'sans-serif', fontsize = 'large')
 
 fig.tight_layout()
 
